@@ -11,12 +11,14 @@ var routes = {
     },
   },
   POST: {
-    '/': postHandler
+    '/': postHandler,
+    '/loading.html': postHandler
   }
 };
 
 exports.handleRequest = function(req, res) {
-  var handler = routes[req.method];
+  console.log(req.method, req.url);
+  var handler = routes[req.method.toUpperCase()];
 
   if (typeof handler === 'object') {
     handler = handler[req.url];

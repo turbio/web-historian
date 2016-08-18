@@ -10,7 +10,7 @@ initialize(path.join(__dirname, '/testdata'));
 
 archive.initialize({
   archivedSites: path.join(__dirname, '/testdata/sites'),
-  list: path.join(__dirname, '/testdata/sites.txt')
+  requested: path.join(__dirname, '/testdata/sites.txt')
 });
 
 var request = supertest.agent(server);
@@ -57,7 +57,7 @@ describe('server', function() {
         var url = 'www.example.com';
 
         // Reset the test file and process request
-        fs.closeSync(fs.openSync(archive.paths.list, 'w'));
+        fs.closeSync(fs.openSync(archive.paths.requested, 'w'));
 
         request
           .post('/')
@@ -65,7 +65,7 @@ describe('server', function() {
           .send({ url: url })
           .expect(302, function (err) {
             if (!err) {
-              var fileContents = fs.readFileSync(archive.paths.list, 'utf8');
+              var fileContents = fs.readFileSync(archive.paths.requested, 'utf8');
               expect(fileContents).to.equal(url + '\n');
             }
 
@@ -80,7 +80,7 @@ describe('archive helpers', function() {
   describe('#readListOfUrls', function () {
     it('should read urls from sites.txt', function (done) {
       var urlArray = ['example1.com', 'example2.com'];
-      fs.writeFileSync(archive.paths.list, urlArray.join('\n'));
+      fs.writeFileSync(archive.paths.requested, urlArray.join('\n'));
 
       archive.readListOfUrls(function(urls) {
         expect(urls).to.deep.equal(urlArray);
@@ -92,7 +92,7 @@ describe('archive helpers', function() {
   describe('#isUrlInList', function () {
     it('should check if a url is in the list', function (done) {
       var urlArray = ['example1.com', 'example2.com'];
-      fs.writeFileSync(archive.paths.list, urlArray.join('\n'));
+      fs.writeFileSync(archive.paths.requested, urlArray.join('\n'));
 
       var counter = 0;
       var total = 2;
@@ -112,7 +112,7 @@ describe('archive helpers', function() {
   describe('#addUrlToList', function () {
     it('should add a url to the list', function (done) {
       var urlArray = ['example1.com', 'example2.com\n'];
-      fs.writeFileSync(archive.paths.list, urlArray.join('\n'));
+      fs.writeFileSync(archive.paths.requested, urlArray.join('\n'));
 
       archive.addUrlToList('someurl.com', function () {
         archive.isUrlInList('someurl.com', function (exists) {
