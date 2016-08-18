@@ -3,6 +3,10 @@ var path = require('path');
 var http = require('http');
 var _ = require('underscore');
 
+var redis = require('redis');
+var client = redis.createClient();
+bluebird.promisifyAll(redis.RedisClient.prototype);
+bluebird.promisifyAll(redis.Multi.prototype);
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
  * Consider using the `paths` object below to store frequently used file paths. This way,
@@ -30,26 +34,19 @@ exports.initialize = function(pathsObj) {
 // modularize your code. Keep it clean!
 
 exports.readListOfUrls = function(cb) {
-  fs.readFile(exports.paths.requested, (error, data) => cb(data.toString().split('\n')));
+  client.getKeys().execAsync().then(cb);
 };
 
 exports.isUrlInList = function(url, cb) {
   exports.readListOfUrls((u) => cb(u.indexOf(url) !== -1));
-  //exports.readListOfUrls((d) => d) 
-  //fs.readFile( exports.path.sitesDone, () => )
 };
 
 exports.addUrlToList = function(url, cb) {
-  fs.appendFile(
-    exports.paths.requested,
-    url + '\n',
-    'utf8',
-    cb
-    );
+  client.set(url, '1').then(cb);
 };
 
 exports.isUrlArchived = function(url, cb) {
-  fs.readdir(exports.paths.archivedSites, (err, items) => cb(items.indexOf(url) !== -1));
+  client.strlen(url).then( (d) => d.length === 3).then(cb);
 };
 
 exports.downloadUrls = function(urls) {
@@ -62,8 +59,7 @@ exports.downloadUrl = function(url) {
     res.on('data', (d) => data += d);
 
     res.on('end', () => {
-      fs.writeFile(exports.paths.archivedSites + '/' + url, data, 'utf8', (e) =>
-        (e && console.log(e)));
+      client.set(url, data);
     });
   }).end();
 };
