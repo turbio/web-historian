@@ -16,7 +16,7 @@ module.exports = function(req, res) {
       'utf8',
       (e) => {
         e && console.log('oh no: ', e);
-        http.redirect(res, '/loading.html');
+        http.j(res, '/');
       });
   });
 };

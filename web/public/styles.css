@@ -2,3 +2,7 @@ body {
   margin : 0px;
   font-family: arial, sans-serif;
 }
+
+#search::-webkit-input-placeholder{
+	color: #fff;
+}
