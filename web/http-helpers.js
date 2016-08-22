@@ -1,6 +1,7 @@
 var path = require('path');
 var fs = require('fs');
 var mime = require('mime');
+var archive = require('../helpers/archive-helpers');
 
 var defaultHeaders = {
   'access-control-allow-origin': '*',
@@ -41,15 +42,10 @@ exports.serveAssets = function(res, asset) {
 };
 
 exports.serveLinks = function(res) {
-  done(
-    res,
-    200,
-    JSON.stringify([
-      {url: 'google.com', status: 'done'},
-      {url: 'bind.com', status: 'pending'},
-      {url: 'yahoo.com', status: 'requested'},
-      {url: 'example.com', status: 'pending'}
-    ]));
+  archive.readListOfUrls().then(data => {
+    data = data.map(item => ({ url: item, status: 'requested'} ));
+    done(res, 200, JSON.stringify(data));
+  });
 };
 
 exports.redirect = function(res, url) {

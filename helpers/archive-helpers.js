@@ -1,14 +1,18 @@
 var fs = require('fs');
 var path = require('path');
 var http = require('http');
+var bluebird = require('bluebird');
 var redis = require('redis');
+var redisScripts = require('./redis-scripts.js');
+
+bluebird.promisifyAll(redis.RedisClient.prototype);
+bluebird.promisifyAll(redis.Multi.prototype);
 
 var redisClient = redis.createClient();
+redisScripts(redisClient);
 
-require('./redis-scripts.js')(redisClient);
-
-exports.readListOfUrls = function(cb) {
-  redisClient.multi.getKeys().execAsync().then(cb);
+exports.readListOfUrls = function() {
+  return redisClient.zrangeAsync('queue', 0, -1);
 };
 
 exports.isUrlInList = function(url, cb) {

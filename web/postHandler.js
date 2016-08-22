@@ -16,6 +16,6 @@ module.exports = function(req, res) {
     }
 
     console.log('appending', url[1], 'to db');
-    archive.addUrlToList(body, _=> {});
+    archive.addUrlToList(url[1], _=> {});
   });
 };
