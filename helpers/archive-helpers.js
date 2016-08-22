@@ -2,30 +2,30 @@ var fs = require('fs');
 var path = require('path');
 var http = require('http');
 var _ = require('underscore');
-var bluebird = require('bluebird');
 var redis = require('redis');
 
-var client = redis.createClient();
-bluebird.promisifyAll(redis.RedisClient.prototype);
-bluebird.promisifyAll(redis.Multi.prototype);
+var redisClient = redis.createClient();
 
-var indexIncrScript = 'return redis.call("zadd", "queue", redis.call("incr", "index"), KEYS[1])';
-var indexIncrHash = client.script('load', indexIncrScript);
+var redisScripts = require('./redis-scripts.js')(redisClient);
+
+redisScripts.then(data => console.log(data)).catch(data => console.log(data));
+
+//var indexIncrHash = redisClient.script('load', indexIncrScript);
 
 exports.readListOfUrls = function(cb) {
-  client.multi.getKeys().execAsync().then(cb);
+  redisClient.multi.getKeys().execAsync().then(cb);
 };
 
 exports.isUrlInList = function(url, cb) {
-  client.get(url);
+  redisClient.get(url);
 };
 
 exports.addUrlToList = function(url) {
-  client.eval(indexIncrScript, 1, url);
+  redisClient.eval(indexIncrScript, 1, url);
 };
 
 exports.isUrlArchived = function(url, cb) {
-  client.getAsync(url).then(cb);
+  redisClient.getAsync(url).then(cb);
 };
 
 exports.downloadUrls = function(urls) {
@@ -38,7 +38,7 @@ exports.downloadUrl = function(url) {
     res.on('data', (d) => data += d);
 
     res.on('end', () => {
-      client.set(url, data);
+      redisClient.set(url, data);
     });
   }).end();
 };
