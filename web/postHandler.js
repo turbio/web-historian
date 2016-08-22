@@ -7,8 +7,9 @@ module.exports = function(req, res) {
   req.on('data', (data) => body += data);
 
   req.on('end', () => {
+    http.redirect(res, '/');
     body = body.split('=')[1];
-    console.log('appending', body, 'to', archive.paths.requested);
+    console.log('appending', body, 'to db');
     archive.addUrlToList(body, _=> {});
   });
 };
