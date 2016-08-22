@@ -1,2 +1,2 @@
 #web-historian
-This is a project I completed as a student at [hackreactor](http://hackreactor.com). This project was worked on with a pair.
+[![Build Status](https://travis-ci.org/turbio/web-historian.svg?branch=master)](https://travis-ci.org/turbio/web-historian)
