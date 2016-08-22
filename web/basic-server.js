@@ -7,7 +7,7 @@ var initialize = require('./initialize.js');
 initialize('./archives');
 
 var port = 8080;
-var ip = '127.0.0.1';
+var ip = '0.0.0.0';
 var server = http.createServer(handler.handleRequest);
 
 if (module.parent) {
