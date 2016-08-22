@@ -2,7 +2,6 @@ var path = require('path');
 var http = require('./http-helpers');
 var fs = require('fs');
 var postHandler = require('./postHandler');
-var _ = require('underscore');
 
 var routes = {
   GET: {

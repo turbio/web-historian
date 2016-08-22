@@ -15,7 +15,9 @@ module.exports = (redisClient) => {
         fs.readFile(redisLuaDir + file, 'utf8', (err, data) => {
           redisClient.script('load', data, (err, hash) => {
             funcsLoaded++;
-            redisFunctions[file.split('.')[0]] = hash;
+            redisFunctions[file.split('.')[0]] = (...args) => {
+              redisClient.eval.apply(redisClient, [hash, args.length].concat(args));
+            };
             if (funcsLoaded >= files.length) { fulfill(redisFunctions); }
           });
         });

@@ -6,11 +6,8 @@ var redis = require('redis');
 
 var redisClient = redis.createClient();
 
-var redisScripts = require('./redis-scripts.js')(redisClient);
-
-redisScripts.then(data => console.log(data)).catch(data => console.log(data));
-
-//var indexIncrHash = redisClient.script('load', indexIncrScript);
+var redisScripts = require('./redis-scripts.js')(redisClient)
+  .then(scripts => console.log(redisScripts = scripts));
 
 exports.readListOfUrls = function(cb) {
   redisClient.multi.getKeys().execAsync().then(cb);
@@ -21,7 +18,7 @@ exports.isUrlInList = function(url, cb) {
 };
 
 exports.addUrlToList = function(url) {
-  redisClient.eval(indexIncrScript, 1, url);
+  redisScripts.index_incr(url);
 };
 
 exports.isUrlArchived = function(url, cb) {
