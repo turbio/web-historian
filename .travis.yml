@@ -3,7 +3,6 @@ services:
     - redis-server
 node_js:
   - "node"
-  - "iojs"
   - "6"
   - "5"
   - "4"
