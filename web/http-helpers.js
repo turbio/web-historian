@@ -1,6 +1,5 @@
 var path = require('path');
 var fs = require('fs');
-var archive = require('../helpers/archive-helpers');
 var mime = require('mime');
 
 var defaultHeaders = {
@@ -20,17 +19,19 @@ var done = function(res, statusCode, data, headers) {
 };
 
 exports.serveArchive = function(res, asset) {
-  fs.readFile(archive.paths.archivedSites + asset, (err, data) => {
-    if (err) {
-      done(res, 404, 'drew sucks: ' + err);
-    } else {
-      done(res, 200, data, mime.lookup(asset));
-    }
-  });
+  //fs.readFile(archive.paths.archivedSites + asset, (err, data) => {
+    //if (err) {
+      //done(res, 404, 'drew sucks: ' + err);
+    //} else {
+      //done(res, 200, data, mime.lookup(asset));
+    //}
+  //});
+  //
+  done(res, 404, 'drew sucks: ');
 };
 
 exports.serveAssets = function(res, asset) {
-  fs.readFile(archive.paths.siteAssets + asset, (err, data) => {
+  fs.readFile('./web/public/' + asset, (err, data) => {
     if (err) {
       exports.serveArchive(res, asset);
     } else {
