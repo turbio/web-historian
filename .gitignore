@@ -39,3 +39,4 @@ node_modules
 .floobit
 .floo
 .flooignore
+dump.rdb
