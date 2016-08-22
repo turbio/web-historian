@@ -22,10 +22,10 @@ describe('server', function() {
   });
 
   describe('POST /', function () {
-    it('should accept post requests with url to /', function (done) {
+    it('should accept post requests with url to / and redirect', function (done) {
       request
-        .get('/')
-        .expect(200, /<html/, done);
+        .post('/')
+        .expect(302, done);
     });
   });
 
