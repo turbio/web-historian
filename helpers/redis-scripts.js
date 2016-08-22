@@ -1,12 +1,11 @@
 var fs = require('fs');
 var redisLuaDir = './redis_lua/';
-var redisFunctions = undefined;
 
 module.exports = (redisClient) => {
   return new Promise(fulfill => {
-    if (redisFunctions !== undefined) { return fulfill(redisFunctions); }
+    if (redisClient.lua !== undefined) { return fulfill(); }
 
-    redisFunctions = {};
+    redisClient.lua = {};
     var funcsLoaded = 0;
 
     fs.readdir(redisLuaDir, (err, files) => {
@@ -15,10 +14,10 @@ module.exports = (redisClient) => {
         fs.readFile(redisLuaDir + file, 'utf8', (err, data) => {
           redisClient.script('load', data, (err, hash) => {
             funcsLoaded++;
-            redisFunctions[file.split('.')[0]] = (...args) => {
+            redisClient.lua[file.split('.')[0]] = (...args) => {
               redisClient.eval.apply(redisClient, [hash, args.length].concat(args));
             };
-            if (funcsLoaded >= files.length) { fulfill(redisFunctions); }
+            if (funcsLoaded >= files.length) { fulfill(); }
           });
         });
       });

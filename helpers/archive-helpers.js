@@ -4,9 +4,7 @@ var http = require('http');
 var redis = require('redis');
 
 var redisClient = redis.createClient();
-
-var redisScripts = require('./redis-scripts.js')(redisClient)
-  .then(scripts => console.log(redisScripts = scripts));
+require('./redis-scripts.js')(redisClient);
 
 exports.readListOfUrls = function(cb) {
   redisClient.multi.getKeys().execAsync().then(cb);
@@ -17,7 +15,7 @@ exports.isUrlInList = function(url, cb) {
 };
 
 exports.addUrlToList = function(url) {
-  redisScripts.index_incr(url);
+  redisClient.lua.index_incr(url);
 };
 
 exports.isUrlArchived = function(url, cb) {
