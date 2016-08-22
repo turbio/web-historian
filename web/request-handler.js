@@ -6,13 +6,11 @@ var _ = require('underscore');
 
 var routes = {
   GET: {
-    '/': (req, res) => {
-      http.serveAssets(res, '/index.html');
-    },
+    '/': (req, res) => { http.serveAssets(res, '/index.html'); },
+    '/links': (req, res) => { http.serveLinks(res); },
   },
   POST: {
     '/': postHandler,
-    '/loading.html': postHandler
   }
 };
 

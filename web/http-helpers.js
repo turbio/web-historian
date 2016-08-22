@@ -39,6 +39,18 @@ exports.serveAssets = function(res, asset) {
   });
 };
 
+exports.serveLinks = function(res) {
+  done(
+    res,
+    200,
+    JSON.stringify([
+      {url: 'google.com', status: 'done'},
+      {url: 'bind.com', status: 'pending'},
+      {url: 'yahoo.com', status: 'requested'},
+      {url: 'example.com', status: 'pending'}
+    ]));
+};
+
 exports.redirect = function(res, url) {
   done(res, 302, '', { Location: url });
 };

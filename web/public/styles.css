@@ -6,3 +6,15 @@ body {
 #search::-webkit-input-placeholder{
 	color: #fff;
 }
+
+@keyframes rotate{
+  from{ transform: rotate(360deg); }
+  to{ transform: rotate(0deg); }
+}
+
+.sync-icon{
+  animation-duration: 3s;
+  animation-timing-function: linear;
+  animation-name: rotate;
+  animation-iteration-count: infinite;
+}
