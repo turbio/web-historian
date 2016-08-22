@@ -7,9 +7,15 @@ module.exports = function(req, res) {
   req.on('data', (data) => body += data);
 
   req.on('end', () => {
-    http.redirect(res, '/');
-    body = body.split('=')[1];
-    console.log('appending', body, 'to db');
+    url = /url=([^&]+)/.exec(body);
+
+    if (url === null || !url[1]) {
+      return http.clientErr(res, 'you must include a url');
+    } else {
+      http.redirect(res, '/');
+    }
+
+    console.log('appending', url[1], 'to db');
     archive.addUrlToList(body, _=> {});
   });
 };

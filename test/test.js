@@ -25,7 +25,29 @@ describe('server', function() {
     it('should accept post requests with url to / and redirect', function (done) {
       request
         .post('/')
-        .expect(302, done);
+        .type('form')
+        .send({ url: 'thisisatest' })
+        .expect(302, function (err) {
+          done(err);
+        });
+    });
+    it('should respond with error if no post data is sent', function (done) {
+      request
+        .post('/')
+        .type('form')
+        .send({})
+        .expect(400, function (err) {
+          done(err);
+        });
+    });
+    it('should respond with error if url is not included', function (done) {
+      request
+        .post('/')
+        .type('form')
+        .send({ thisisatest: 'thisisatest' })
+        .expect(400, function (err) {
+          done(err);
+        });
     });
   });
 

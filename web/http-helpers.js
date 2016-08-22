@@ -55,3 +55,7 @@ exports.serveLinks = function(res) {
 exports.redirect = function(res, url) {
   done(res, 302, '', { Location: url });
 };
+
+exports.clientErr = function(res, message) {
+  done(res, 400, 'error: ' + message);
+};
