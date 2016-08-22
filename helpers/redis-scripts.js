@@ -15,7 +15,8 @@ module.exports = (redisClient) => {
           redisClient.script('load', data, (err, hash) => {
             funcsLoaded++;
             redisClient.lua[file.split('.')[0]] = (...args) => {
-              redisClient.eval.apply(redisClient, [hash, args.length].concat(args));
+              console.log(hash);
+              redisClient.evalsha.apply(redisClient, [hash, args.length].concat(args));
             };
             if (funcsLoaded >= files.length) { fulfill(); }
           });

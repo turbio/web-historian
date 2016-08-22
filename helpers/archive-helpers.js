@@ -4,6 +4,7 @@ var http = require('http');
 var redis = require('redis');
 
 var redisClient = redis.createClient();
+
 require('./redis-scripts.js')(redisClient);
 
 exports.readListOfUrls = function(cb) {
