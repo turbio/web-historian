@@ -1,7 +1,6 @@
 var fs = require('fs');
 var path = require('path');
 var http = require('http');
-var _ = require('underscore');
 var redis = require('redis');
 
 var redisClient = redis.createClient();
