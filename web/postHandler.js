@@ -9,14 +9,6 @@ module.exports = function(req, res) {
   req.on('end', () => {
     body = body.split('=')[1];
     console.log('appending', body, 'to', archive.paths.requested);
-
-    fs.appendFile(
-      archive.paths.requested,
-      body + '\n',
-      'utf8',
-      (e) => {
-        e && console.log('oh no: ', e);
-        http.j(res, '/');
-      });
+    archive.addUrlToList(body, _=> {});
   });
 };
