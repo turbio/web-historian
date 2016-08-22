@@ -14,6 +14,19 @@ describe('server', function() {
         .get('/')
         .expect(200, /<html/, done);
     });
+    it('should return 404 for nonexistent files', function (done) {
+      request
+        .get('/thisfileshouldnotexist')
+        .expect(404, done);
+    });
+  });
+
+  describe('POST /', function () {
+    it('should accept post requests with url to /', function (done) {
+      request
+        .get('/')
+        .expect(200, /<html/, done);
+    });
   });
 
   xdescribe('archived websites', function () {
