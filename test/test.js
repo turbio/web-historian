@@ -5,15 +5,34 @@ var archive = require('../helpers/archive-helpers');
 var path = require('path');
 var supertest = require('supertest');
 
+var redis = require('redis');
+var redisClient = redis.createClient();
+
+var flushdb = (done) => {
+  redisClient.flushall(done);
+};
+
 var request = supertest.agent(server);
 
 describe('server', function() {
+  beforeEach(flushdb);
+
   describe('GET /', function () {
     it('should return the content of index.html', function (done) {
       request
         .get('/')
         .expect(200, /<html/, done);
     });
+
+    it('should get valid json array of all db entries', function (done) {
+      request
+        .get('/links')
+        .expect(200, function(err, res) {
+          expect(JSON.parse(res.text)).to.eql([]);
+          done(err);
+        });
+    });
+
     it('should return 404 for nonexistent files', function (done) {
       request
         .get('/thisfileshouldnotexist')
@@ -51,52 +70,17 @@ describe('server', function() {
     });
   });
 
-  xdescribe('archived websites', function () {
-    describe('GET', function () {
-      it('should return the content of a website from the archive', function (done) {
-        var fixtureName = 'www.google.com';
-        var fixturePath = archive.paths.archivedSites + '/' + fixtureName;
-
-        // Create or clear the file.
-        var fd = fs.openSync(fixturePath, 'w');
-        fs.writeSync(fd, 'google');
-        fs.closeSync(fd);
-
-        // Write data to the file.
-        fs.writeFileSync(fixturePath, 'google');
-
-        request
-          .get('/' + fixtureName)
-          .expect(200, /google/, function (err) {
-            fs.unlinkSync(fixturePath);
-            done(err);
-          });
-      });
-
-      it('Should 404 when asked for a nonexistent file', function(done) {
-        request.get('/arglebargle').expect(404, done);
-      });
+  describe('archived websites', function() {
+    before(function(done) {
+      flushdb(done);
     });
 
-    describe('POST', function () {
-      it('should append submitted sites to \'sites.txt\'', function(done) {
-        var url = 'www.example.com';
-
-        // Reset the test file and process request
-        fs.closeSync(fs.openSync(archive.paths.requested, 'w'));
-
-        request
-          .post('/')
-          .type('form')
-          .send({ url: url })
-          .expect(302, function (err) {
-            if (!err) {
-              var fileContents = fs.readFileSync(archive.paths.requested, 'utf8');
-              expect(fileContents).to.equal(url + '\n');
-            }
-
-            done(err);
-          });
+    it('should post data to the database', function(done) {
+      request.post('/').type('form').send({ url: 'example.org' }).expect(302, err => {
+        request.get('/links').expect(200, (err, res) => {
+          expect(JSON.parse(res.text)).to.eql([{ status: 'requested', url: 'example.org' }]);
+          done(err);
+        });
       });
     });
   });
