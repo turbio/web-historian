@@ -24,6 +24,18 @@ describe('server', function() {
         .expect(200, /<html/, done);
     });
 
+    it('should return static script files', function (done) {
+      request
+        .get('/script.js')
+        .expect(200, done);
+    });
+
+    it('should return static style files', function (done) {
+      request
+        .get('/styles.css')
+        .expect(200, done);
+    });
+
     it('should get valid json array of all db entries', function (done) {
       request
         .get('/links')
