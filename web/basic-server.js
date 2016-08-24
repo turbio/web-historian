@@ -1,5 +1,4 @@
 var http = require('http');
-var handler = require('./request-handler');
 var express = require('express');
 var bodyParser = require('body-parser');
 
