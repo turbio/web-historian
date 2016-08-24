@@ -1,14 +1,27 @@
 var http = require('http');
 var handler = require('./request-handler');
+var express = require('express');
+var bodyParser = require('body-parser');
+
+//project files
+var helpers = require('./http-helpers'); 
+var postHandler = require('./postHandler');
+
+var app = express();
+
+
+app.use(bodyParser.json()); //parse that json body
+
+app.get('/', (req, res) => res.sendFile('index.html', {root: __dirname +'/public'}));
+app.post('/', postHandler);
+app.get('/links', (req, res) => helpers.serveLinks(res) );
 
 var port = 8080;
-var ip = '0.0.0.0';
-var server = http.createServer(handler.handleRequest);
 
 if (module.parent) {
-  module.exports = server;
+  module.exports = app;
 } else {
-  server.listen(port, ip);
-  console.log('Listening on http://' + ip + ':' + port);
+  console.log('Listening on port: ' + port);
+  app.listen(port);
 }
 
