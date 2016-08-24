@@ -9,7 +9,7 @@ var postHandler = require('./postHandler');
 var app = express();
 
 
-app.use(bodyParser.json()); //parse that json body
+app.use(bodyParser.urlencoded()); //parse that form body
 
 app.get('/', (req, res) => res.sendFile('index.html', {root: __dirname +'/public'}));
 app.post('/', postHandler);
