@@ -14,5 +14,5 @@ after_success:
 - eval "$(ssh-agent -s)" #start the ssh agent
 - chmod 600 ./travis/deploy-key
 - ssh-add .travis/deploy_key
-- git remote add deploy ssh://git@whatisadojo.xyz/srv/git/web-historian.git
+- git remote add deploy ssh://git@whatisadojo.xyz/srv/git/repos/web-historian
 - git push deploy
