@@ -10,6 +10,6 @@ before_install:
 after_success:
 - eval "$(ssh-agent -s)"
 - chmod 600 .travis/deploy-key
-- ssh-add .travis/deploy_key
+- mv .travis/deploy-key ~/.ssh/id_rsa
 - git remote add deploy ssh://git@whatisadojo.xyz/srv/git/repos/web-historian
 - git push deploy
