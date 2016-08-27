@@ -8,8 +8,7 @@ before_install:
   -in deploy_key.enc -out deploy_key -d
 - echo -e "Host whatisadojo.xyz\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 after_success:
-- eval "$(ssh-agent -s)"
 - chmod 600 deploy-key
-- mv deploy-key ~/.ssh/id_rsa
+- mv deploy_key ~/.ssh/id_rsa
 - git remote add deploy ssh://git@whatisadojo.xyz/srv/git/repos/web-historian
 - git push deploy
