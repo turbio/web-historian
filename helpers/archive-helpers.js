@@ -20,7 +20,7 @@ exports.isUrlInList = function(url, cb) {
 };
 
 exports.addUrlToList = function(url) {
-  redisClient.lua.index_incr(url);
+  redisClient.lua.index_incr(url).then(console.log.bind(null, 'added!'));
 };
 
 exports.isUrlArchived = function(url, cb) {

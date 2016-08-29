@@ -1,26 +1,23 @@
-var fs = require('fs');
+var bluebird = require('bluebird');
+var fs = bluebird.promisifyAll(require('fs'));
+
 var redisLuaDir = './redis_lua/';
 
 module.exports = (redisClient) => {
-  return new Promise(fulfill => {
-    if (redisClient.lua !== undefined) { return fulfill(); }
+  if (redisClient.lua !== undefined) { return; }
 
-    redisClient.lua = {};
-    var funcsLoaded = 0;
+  redisClient.lua = {};
 
-    fs.readdir(redisLuaDir, (err, files) => {
-
-      files.forEach(file => {
-        fs.readFile(redisLuaDir + file, 'utf8', (err, data) => {
-          redisClient.script('load', data, (err, hash) => {
-            funcsLoaded++;
-            redisClient.lua[file.split('.')[0]] = (...args) => {
-              return redisClient.evalsha.apply(redisClient, [hash, args.length].concat(args));
-            };
-            if (funcsLoaded >= files.length) { fulfill(); }
-          });
-        });
-      });
-    });
-  });
+  fs.readdirAsync(redisLuaDir).then(files =>
+    files.forEach(file =>
+      fs.readFileAsync(redisLuaDir + file, 'utf8')
+      .then(data => redisClient.scriptAsync('load', data))
+      .then(hash =>
+        redisClient.lua[file.split('.')[0]] = (...args) => {
+          var redisArgs = [hash, args.length].concat(args);
+          return redisClient.evalshaAsync.apply(redisClient, redisArgs);
+        }
+      )
+    )
+  );
 };
