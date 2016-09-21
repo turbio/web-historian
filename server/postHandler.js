@@ -1,5 +1,5 @@
 var fs = require('fs');
-var archive = require('../helpers/archive-helpers');
+var archive = require('./archive-helpers');
 var http = require('./http-helpers');
 
 module.exports = function(req, res) {

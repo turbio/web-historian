@@ -1,7 +1,7 @@
 var path = require('path');
 var fs = require('fs');
 var mime = require('mime');
-var archive = require('../helpers/archive-helpers');
+var archive = require('./archive-helpers');
 
 var defaultHeaders = {
   'access-control-allow-origin': '*',

@@ -11,7 +11,8 @@ var app = express();
 
 app.use(bodyParser.urlencoded()); //parse that form body
 
-app.use(express.static(__dirname + '/public'));
+app.use(express.static('./client'));
+
 app.post('/', postHandler);
 app.get('/links', (req, res) => helpers.serveLinks(res) );
 
