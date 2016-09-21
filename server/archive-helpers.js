@@ -2,21 +2,20 @@ var fs = require('fs');
 var path = require('path');
 var http = require('http');
 
-
 exports.readListOfUrls = function() {
-  return redisClient.zrangeAsync('queue', 0, -1);
+  //return redisClient.zrangeAsync('queue', 0, -1);
 };
 
 exports.isUrlInList = function(url, cb) {
-  redisClient.get(url);
+  //redisClient.get(url);
 };
 
 exports.addUrlToList = function(url) {
-  redisClient.lua.index_incr(url).then(console.log.bind(null, 'added!'));
+  //redisClient.lua.index_incr(url).then(console.log.bind(null, 'added!'));
 };
 
 exports.isUrlArchived = function(url, cb) {
-  redisClient.getAsync(url).then(cb);
+  //redisClient.getAsync(url).then(cb);
 };
 
 exports.downloadUrls = function(urls) {
@@ -29,7 +28,7 @@ exports.downloadUrl = function(url) {
     res.on('data', (d) => data += d);
 
     res.on('end', () => {
-      redisClient.set(url, data);
+      //redisClient.set(url, data);
     });
   }).end();
 };
