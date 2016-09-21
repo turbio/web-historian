@@ -1,8 +1,8 @@
 var newLink = (url, status) => {
   var statuses = {
-    requested: '<span><i class="material-icons">access_time</i></span>',
-    pending: '<span><i class="sync-icon material-icons">sync</i></span>',
-    done: '<span><i class="material-icons">done</i></span>'
+    requested: '<span class="status-icon"><i class="material-icons">access_time</i></span>',
+    pending: '<span class="status-icon"><i class="sync-icon material-icons">sync</i></span>',
+    done: '<span class="status-icon"><i class="material-icons">done</i></span>'
   };
 
   var card = `
