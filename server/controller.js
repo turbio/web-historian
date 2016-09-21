@@ -1,7 +1,7 @@
 var path = require('path');
 var fs = require('fs');
 var mime = require('mime');
-var archive = require('./model');
+var model = require('./model');
 
 var defaultHeaders = {
   'access-control-allow-origin': '*',
@@ -10,17 +10,8 @@ var defaultHeaders = {
   'access-control-max-age': 10, // Seconds.
 };
 
-var done = function(res, statusCode, data, headers) {
-  headers = headers || {};
-
-  Object.assign(headers, defaultHeaders);
-
-  res.writeHead(statusCode, headers);
-  res.end(data);
-};
-
 exports.serveArchive = function(res, asset) {
-  //fs.readFile(archive.paths.archivedSites + asset, (err, data) => {
+  //fs.readFile(model.paths.archivedSites + asset, (err, data) => {
     //if (err) {
       //done(res, 404, 'drew sucks: ' + err);
     //} else {
@@ -41,29 +32,19 @@ exports.serveAssets = function(res, asset) {
   });
 };
 
-exports.redirect = function(res, url) {
-  done(res, 302, '', { Location: url });
-};
-
-exports.clientErr = function(res, message) {
-  done(res, 400, 'error: ' + message);
-};
-
-exports.get = function(res) {
-  archive.readListOfUrls().then(data => {
-    data = data.map(item => ({ url: item, status: 'requested'} ));
-    done(res, 200, JSON.stringify(data));
+exports.get = function(req, res) {
+  model.readListOfUrls().then((data) => {
+    res.json(data);
   });
 };
 
 exports.post = function(req, res) {
-
   if (!req.body.url) {
-    return http.clientErr(res, 'you must include a url');
+    return res.status(400).send('you must include a url');
   } else {
-    http.redirect(res, '/');
+    res.redirect('/');
   }
 
   console.log('appending', req.body.url, 'to db');
-  archive.addUrlToList(req.body.url, _=> {});
+  model.addUrlToList(req.body.url);
 };

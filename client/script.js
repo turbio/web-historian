@@ -23,6 +23,5 @@ var newLink = (url, status) => {
 
 $(_ =>
   $.get('/links', data =>
-    JSON.parse(data)
-      .forEach(link =>
-        newLink(link.url, link.status))));
+    data.forEach(link =>
+      newLink(link.url, link.status))));

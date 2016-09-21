@@ -2,35 +2,39 @@ var fs = require('fs');
 var path = require('path');
 var http = require('http');
 var neo4j = require('neo4j');
-var db = new neo4j.GraphDatabase('http://neo4j:<password>@localhost:7474');
+var db = new neo4j.GraphDatabase('http://neo4j:password@localhost:7474');
 
-exports.readListOfUrls = function() {
-  //return redisClient.zrangeAsync('queue', 0, -1);
+var query = function(query, params, mapper) {
+  if (mapper === undefined && typeof params === 'function') {
+    mapper = params;
+    params = null;
+  }
+
+  return new Promise((resolve, reject) => {
+    db.cypher(
+      { query, params: params || {} },
+      (err, results) => {
+
+        if (err) {
+          return reject(err);
+        }
+
+        if (mapper){
+          results = results.map(mapper);
+        }
+
+        resolve(results);
+      });
+  });
 };
 
-exports.isUrlInList = function(url, cb) {
-  //redisClient.get(url);
+exports.readListOfUrls = function() {
+  return query(
+    'MATCH (page:Page) RETURN page.url AS url, page.status AS status');
 };
 
 exports.addUrlToList = function(url) {
-  //redisClient.lua.index_incr(url).then(console.log.bind(null, 'added!'));
-};
-
-exports.isUrlArchived = function(url, cb) {
-  //redisClient.getAsync(url).then(cb);
-};
-
-exports.downloadUrls = function(urls) {
-  urls.forEach((url) => exports.downloadUrl(url));
-};
-
-exports.downloadUrl = function(url) {
-  http.request({ host: url }, (res) => {
-    var data = '';
-    res.on('data', (d) => data += d);
-
-    res.on('end', () => {
-      //redisClient.set(url, data);
-    });
-  }).end();
+  return query(
+    'CREATE (page:Page {url: { url }, status: 0 }) RETURN page',
+    { url });
 };
