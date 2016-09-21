@@ -1,7 +1,7 @@
 var path = require('path');
 var fs = require('fs');
 var mime = require('mime');
-var archive = require('./archive-helpers');
+var archive = require('./model');
 
 var defaultHeaders = {
   'access-control-allow-origin': '*',
@@ -41,17 +41,29 @@ exports.serveAssets = function(res, asset) {
   });
 };
 
-exports.serveLinks = function(res) {
-  archive.readListOfUrls().then(data => {
-    data = data.map(item => ({ url: item, status: 'requested'} ));
-    done(res, 200, JSON.stringify(data));
-  });
-};
-
 exports.redirect = function(res, url) {
   done(res, 302, '', { Location: url });
 };
 
 exports.clientErr = function(res, message) {
   done(res, 400, 'error: ' + message);
+};
+
+exports.get = function(res) {
+  archive.readListOfUrls().then(data => {
+    data = data.map(item => ({ url: item, status: 'requested'} ));
+    done(res, 200, JSON.stringify(data));
+  });
+};
+
+exports.post = function(req, res) {
+
+  if (!req.body.url) {
+    return http.clientErr(res, 'you must include a url');
+  } else {
+    http.redirect(res, '/');
+  }
+
+  console.log('appending', req.body.url, 'to db');
+  archive.addUrlToList(req.body.url, _=> {});
 };

@@ -1,6 +1,8 @@
 var fs = require('fs');
 var path = require('path');
 var http = require('http');
+var neo4j = require('neo4j');
+var db = new neo4j.GraphDatabase('http://neo4j:<password>@localhost:7474');
 
 exports.readListOfUrls = function() {
   //return redisClient.zrangeAsync('queue', 0, -1);
