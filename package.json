@@ -22,7 +22,8 @@
     "neo4j": "^2.0.0-RC2",
     "neo4j-driver": "^1.0.4",
     "request": "^2.70.0",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "zmq": "^2.15.3"
   },
   "devDependencies": {
     "babel-cli": "^6.7.5",
