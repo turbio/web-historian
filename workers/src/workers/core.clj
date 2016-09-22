@@ -5,21 +5,18 @@
 (def redis-server {:pool {} :spec {}})
 (defmacro wcar* [& body] `(car/wcar redis-server ~@body))
 
-(defn pending-tasks
+(defn get-task
   []
-  (wcar* (car/zrange "queue" 0 -1)))
+  (last (wcar* (car/blpop "pending" 0))))
 
-(defn begin-task
+(defn curl
   [task]
   (println (str "starting task for " task)))
 
-(defn end-task
-  [task result]
-  (println (str "ending task for " task " with result " result)))
-
 (defn -main
   [& args]
-  (doseq [i (pending-tasks)]
-    (begin-task i)
-    (end-task i (client/get (str (if (not (re-find #"://" i)) "http://") i)))))
+  (loop
+    []
+    (curl (get-task))
+    (recur)))
 

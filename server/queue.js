@@ -1,9 +1,11 @@
-var zmq = require('zmq');
-var sock = zmq.socket('push');
+var redis = require("redis").createClient();
 
-sock.bindSync('tcp://127.0.0.1:8081');
+redis.on("error", function (err) {
+  console.log("Error " + err);
+});
 
-module.exports.page = (id, url) => {
-  console.log('sending....');
-  sock.send('page:' + id + ':' + url);
+module.exports.page = (url) => {
+  redis.lpush('pending', url, (r) => {
+    console.log(url, r);
+  });
 };

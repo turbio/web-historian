@@ -5,7 +5,6 @@ var queue = require('./queue');
 var neo4j = require('neo4j');
 
 var db = new neo4j.GraphDatabase('http://neo4j:password@localhost:7474');
-setInterval(() => queue.page('first', 'second'), 1000);
 
 var query = function(query, params, mapper) {
   if (mapper === undefined && typeof params === 'function') {
@@ -37,9 +36,6 @@ exports.readListOfUrls = function() {
 };
 
 exports.addUrlToList = function(url) {
-  //Promise.resolve()
-    //.then(() =>
   query('CREATE (page:Page {url: { url }, status: 0 }) RETURN page', { url });
-    //.then((result) =>
-        //queue.page(result[0].page._id));
+  queue.page(url);
 };
