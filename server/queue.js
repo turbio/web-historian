@@ -1,7 +1,7 @@
-var redis = require("redis").createClient();
+var redis = require('redis').createClient();
 
-redis.on("error", function (err) {
-  console.log("Error " + err);
+redis.on('error', (err) => {
+  console.log('error ' + err);
 });
 
 module.exports.page = (url) => {
