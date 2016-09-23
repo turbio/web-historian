@@ -1,11 +1,25 @@
-var redis = require('redis').createClient();
+var redis = require('redis');
+var push = redis.createClient();
+var pull = redis.createClient();
 
-redis.on('error', (err) => {
-  console.log('error ' + err);
-});
+let doneCallback = undefined;
 
-module.exports.page = (url) => {
-  redis.lpush('pending', url, (r) => {
-    console.log(url, r);
+const onDone = (err, job) => {
+  if (doneCallback) {
+    doneCallback(JSON.parse(job[1]));
+  }
+  pull.blpop('done', 0, onDone);
+};
+
+module.exports.page = (id, url) => {
+  const job = JSON.stringify({ url, id });
+  push.lpush('pending', job, () => {
+    console.log(`added job ${job}`);
   });
 };
+
+module.exports.done = (cb) => {
+  doneCallback = cb;
+};
+
+pull.blpop('done', 0, onDone);

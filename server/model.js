@@ -30,12 +30,28 @@ var query = function(query, params, mapper) {
   });
 };
 
+queue.done((result) => {
+  result.links.forEach((link) => {
+    console.log(result.id, '->', link);
+    query(
+      'MATCH (origin:Page) WHERE ID(origin) = { origin_id }'
+      + 'CREATE (origin)-[r:Href]->(to:Page {url: { to_url }})'
+      + 'RETURN r,to', {
+        'origin_id': result.id,
+        'to_url': link
+      });
+  });
+});
+
 exports.readListOfUrls = function() {
   return query(
     'MATCH (page:Page) RETURN page.url AS url, page.status AS status');
 };
 
 exports.addUrlToList = function(url) {
-  query('CREATE (page:Page {url: { url }, status: 0 }) RETURN page', { url });
-  queue.page(url);
+  Promise.resolve()
+    .then(() =>
+      query('CREATE (page:Page {url: { url }, status: 0 }) RETURN page', { url }))
+    .then((result) =>
+      queue.page(result[0].page._id, url));
 };

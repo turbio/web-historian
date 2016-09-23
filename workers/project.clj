@@ -8,4 +8,5 @@
                  [clj-http "2.2.0"]
                  [com.taoensso/carmine "2.14.0"]
                  [org.clojure/core.async "0.2.391"]
-                 [enlive "1.1.6"]])
+                 [enlive "1.1.6"]
+                 [org.clojure/data.json "0.2.6"]])

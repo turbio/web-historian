@@ -3,7 +3,8 @@
   (:require [taoensso.carmine :as car :refer (wcar)])
   (:require [clojure.core.async :as async
    :refer [>! <! >!! <!! go chan buffer close! thread alts! alts!! timeout]])
-  (:require [net.cgrand.enlive-html :as html]))
+  (:require [net.cgrand.enlive-html :as html])
+  (:require [clojure.data.json :as json]))
 
 (def redis-server {:pool {} :spec {}})
 (defmacro wcar* [& body] `(car/wcar redis-server ~@body))
@@ -18,41 +19,62 @@
 
 (defn get-task
   []
-  (last (wcar* (car/blpop "pending" 0))))
+  (json/read-str (last (wcar* (car/blpop "pending" 0)))))
+
+(defn send-task
+  [task]
+  (println "sending to redis ")
+  (wcar* (car/lpush "done" (json/write-str task))))
+
+(defn check-host
+  [host url]
+  (if (= (get url 0) \/)
+    (str host url)
+    url))
 
 (defn get-links
-  [text]
-  (mapcat
-    #(html/attr-values % :href)
-    (html/select (html/html-snippet text) [:a])))
+  [task]
+  (println "adding links to ")
+  (merge
+    task
+    {"links"
+     (mapcat
+       #(html/attr-values % :href)
+       (html/select (html/html-snippet (get task "result")) [:a]))}))
 
-(defn post-task
-  [task, result]
-  (println (str "finished " task))
-  (let [path (to-file-path (str archive-path task))]
+(defn save-file
+  [task]
+  (println "saving to file ")
+  (let [path (to-file-path (str archive-path (get task "url")))]
     (clojure.java.io/make-parents path)
-    (spit path result))
-  (println (for [x (get-links result)]
-    (if (= (get x 0) \/) (str task x) x)
-  ))
-)
+    (spit path (get task "result"))))
 
 (defn add-proto
-  [url]
-  (str (if (not (re-find #"://" url)) "http://") url))
+  [task]
+  (println "checking protocol ")
+  (merge task
+    {"url" (let
+       [url (get task "url")]
+       (str
+         (if (not (re-find #"://" url)) "http://")
+         url))}))
 
 (defn curl
   [task]
-  (println (str "starting curl " task))
-  (post-task
+  (println "starting curl ")
+  (merge
     task
-    (try
-      (get (client/get task) :body) (catch Exception e (str e)))))
+    {"result"
+     (try
+       (get (client/get (get task "url")) :body)
+       (catch Exception e (str e)))}))
 
 (defn -main
   [& args]
   (println "listening...")
-  (loop
-    []
-    (curl (add-proto (get-task)))
+  (loop []
+    (let [task (-> (get-task) (add-proto) (curl) (get-links))]
+      (save-file task)
+      (send-task task)
+      (println "done!"))
     (recur)))
