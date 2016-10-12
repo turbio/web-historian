@@ -1,8 +1,10 @@
-var fs = require('fs');
-var path = require('path');
-var http = require('http');
-var queue = require('./queue');
-var neo4j = require('neo4j');
+const fs = require('fs');
+const path = require('path');
+const http = require('http');
+const neo4j = require('neo4j');
+const url = require('url');
+
+const queue = require('./queue');
 
 var db = new neo4j.GraphDatabase('http://neo4j:password@localhost:7474');
 
@@ -30,28 +32,76 @@ var query = function(query, params, mapper) {
   });
 };
 
-queue.done((result) => {
-  result.links.forEach((link) => {
-    console.log(result.id, '->', link);
-    query(
-      'MATCH (origin:Page) WHERE ID(origin) = { origin_id }'
-      + 'CREATE (origin)-[r:Href]->(to:Page {url: { to_url }})'
-      + 'RETURN r,to', {
-        'origin_id': result.id,
-        'to_url': link
-      });
-  });
-});
-
 exports.readListOfUrls = function() {
   return query(
     'MATCH (page:Page) RETURN page.url AS url, page.status AS status');
 };
 
-exports.addUrlToList = function(url) {
+const buildUrl = (origin, destination) => {
+  let parsedOrigin = url.parse(origin);
+
+  if (!parsedOrigin.protocol) {
+    parsedOrigin = url.parse(`http://${origin}`);
+  }
+
+  if (!destination) {
+    return parsedOrigin.href;
+  }
+
+  let parsedDestination = url.parse(destination);
+
+  console.log('building', origin, '->', destination);
+
+  if (!parsedDestination.protocol) {
+    parsedOrigin = url.parse(origin + '/' + destination);
+    parsedOrigin = url.parse(
+        parsedOrigin.protocol
+        + '//'
+        + parsedOrigin.hostname
+        + (parsedDestination.pathname[0] === '/'
+          ? parsedDestination.pathname
+          : path.join(parsedOrigin.pathname))
+        + (parsedOrigin.search ? parsedOrigin.search : '')
+        + (parsedOrigin.hash ? parsedOrigin.hash : ''));
+  } else {
+    parsedOrigin = parsedDestination;
+  }
+
+  return parsedOrigin.href;
+};
+
+exports.addUrlToList = function(reqUrl) {
+  const url = buildUrl(reqUrl);
+
   Promise.resolve()
     .then(() =>
-      query('CREATE (page:Page {url: { url }, status: 0 }) RETURN page', { url }))
+      query('MERGE (page:Page { url: { url } }) RETURN page', { url: url }))
     .then((result) =>
-      queue.page(result[0].page._id, url));
+      queue.page(result[0].page._id, url))
+    .catch((err) => console.log(err));
 };
+
+const finishLink = (origin, link) => {
+  const url = buildUrl(origin.url, link);
+
+  query('MERGE (from:Page { url: { originurl } }) '
+      + 'MERGE (to:Page { url: { tourl } }) '
+      + 'ON CREATE SET to.created = true '
+      + 'WITH to, from, EXISTS(to.created) AS created '
+      + 'MERGE (from)-[r:Link]->(to) '
+      + 'REMOVE to.created '
+      + 'RETURN created', {
+        originurl: origin.url,
+        tourl: url
+      })
+  .then((result) => result[0].created)
+  .then((created) => {
+    if (created && url.split('/').length < 20) {
+      exports.addUrlToList(url);
+    }
+  });
+};
+
+queue.done((result) => {
+  result.links.forEach((link) => finishLink(result, link));
+});

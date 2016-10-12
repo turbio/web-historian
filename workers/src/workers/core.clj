@@ -19,22 +19,17 @@
 
 (defn get-task
   []
+  (println "poping from redis")
   (json/read-str (last (wcar* (car/blpop "pending" 0)))))
 
 (defn send-task
   [task]
-  (println "sending to redis ")
+  (println "pushing to redis")
   (wcar* (car/lpush "done" (json/write-str task))))
-
-(defn check-host
-  [host url]
-  (if (= (get url 0) \/)
-    (str host url)
-    url))
 
 (defn get-links
   [task]
-  (println "adding links to ")
+  (println "adding links to")
   (merge
     task
     {"links"
@@ -44,24 +39,14 @@
 
 (defn save-file
   [task]
-  (println "saving to file ")
+  (println "saving to file")
   (let [path (to-file-path (str archive-path (get task "url")))]
     (clojure.java.io/make-parents path)
     (spit path (get task "result"))))
 
-(defn add-proto
-  [task]
-  (println "checking protocol ")
-  (merge task
-    {"url" (let
-       [url (get task "url")]
-       (str
-         (if (not (re-find #"://" url)) "http://")
-         url))}))
-
 (defn curl
   [task]
-  (println "starting curl ")
+  (println "starting curl " (get task "url"))
   (merge
     task
     {"result"
@@ -73,8 +58,8 @@
   [& args]
   (println "listening...")
   (loop []
-    (let [task (-> (get-task) (add-proto) (curl) (get-links))]
-      (save-file task)
+    (let [task (-> (get-task) (curl) (get-links))]
+      ;(save-file task)
       (send-task task)
       (println "done!"))
     (recur)))
