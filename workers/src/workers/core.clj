@@ -6,7 +6,7 @@
   (:require [net.cgrand.enlive-html :as html])
   (:require [clojure.data.json :as json]))
 
-(def redis-server {:pool {} :spec {}})
+(def redis-server {:pool {} :spec {:host "10.6.27.196"}})
 (defmacro wcar* [& body] `(car/wcar redis-server ~@body))
 
 (def archive-path "./archive/")

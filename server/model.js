@@ -8,6 +8,46 @@ const queue = require('./queue');
 
 var db = new neo4j.GraphDatabase('http://neo4j:password@localhost:7474');
 
+const buildUrl = (origin, destination) => {
+  let parsedOrigin = url.parse(origin);
+
+  if (!parsedOrigin.protocol) {
+    parsedOrigin = url.parse(`http://${origin}`);
+  }
+
+  if (!destination) {
+    return parsedOrigin.href;
+  }
+
+  const parsedDestination = url.parse(destination);
+
+  if (parsedDestination.protocol) {
+    return parsedDestination.href;
+  }
+
+  if (destination.startsWith('//')) {
+    return parsedOrigin.protocol + destination;
+  }
+
+  if (destination.startsWith('#')) {
+    return origin;
+  }
+
+  if (destination.startsWith('/')) {
+    return parsedOrigin.protocol
+      + '//'
+      + parsedOrigin.hostname
+      + path.join(parsedDestination.pathname)
+      + (parsedDestination.search ? parsedDestination.search : '');
+  }
+
+  return parsedOrigin.protocol
+    + '//'
+    + parsedOrigin.hostname
+    + path.join(parsedOrigin.pathname, '/', parsedDestination.pathname)
+    + (parsedDestination.search ? parsedDestination.search : '');
+};
+
 var query = function(query, params, mapper) {
   if (mapper === undefined && typeof params === 'function') {
     mapper = params;
@@ -37,39 +77,6 @@ exports.readListOfUrls = function() {
     'MATCH (page:Page) RETURN page.url AS url, page.status AS status');
 };
 
-const buildUrl = (origin, destination) => {
-  let parsedOrigin = url.parse(origin);
-
-  if (!parsedOrigin.protocol) {
-    parsedOrigin = url.parse(`http://${origin}`);
-  }
-
-  if (!destination) {
-    return parsedOrigin.href;
-  }
-
-  let parsedDestination = url.parse(destination);
-
-  console.log('building', origin, '->', destination);
-
-  if (!parsedDestination.protocol) {
-    parsedOrigin = url.parse(origin + '/' + destination);
-    parsedOrigin = url.parse(
-        parsedOrigin.protocol
-        + '//'
-        + parsedOrigin.hostname
-        + (parsedDestination.pathname[0] === '/'
-          ? parsedDestination.pathname
-          : path.join(parsedOrigin.pathname))
-        + (parsedOrigin.search ? parsedOrigin.search : '')
-        + (parsedOrigin.hash ? parsedOrigin.hash : ''));
-  } else {
-    parsedOrigin = parsedDestination;
-  }
-
-  return parsedOrigin.href;
-};
-
 exports.addUrlToList = function(reqUrl) {
   const url = buildUrl(reqUrl);
 
@@ -81,27 +88,33 @@ exports.addUrlToList = function(reqUrl) {
     .catch((err) => console.log(err));
 };
 
-const finishLink = (origin, link) => {
-  const url = buildUrl(origin.url, link);
+const finishLink = (from, to) => {
+  console.log('started adding', to.length, 'urls');
 
-  query('MERGE (from:Page { url: { originurl } }) '
-      + 'MERGE (to:Page { url: { tourl } }) '
-      + 'ON CREATE SET to.created = true '
-      + 'WITH to, from, EXISTS(to.created) AS created '
-      + 'MERGE (from)-[r:Link]->(to) '
-      + 'REMOVE to.created '
-      + 'RETURN created', {
-        originurl: origin.url,
-        tourl: url
-      })
-  .then((result) => result[0].created)
+  query(`
+    MERGE (from:Page { url: {FROMURL} })
+    FOREACH (tourl in {TOURLS} |
+      MERGE (to:Page { url: tourl})
+      MERGE (from)-[:Link]->(to)
+      ON CREATE SET to.created = true
+    )
+    WITH from
+    MATCH (page:Page)
+    WHERE EXISTS(page.created)
+    REMOVE page.created
+    RETURN page`, {
+      FROMURL: from,
+      TOURLS: to.map((url) => url.to)
+    })
   .then((created) => {
-    if (created && url.split('/').length < 20) {
-      exports.addUrlToList(url);
-    }
+    console.log('finished,', created.length, 'were new');
+    created.map((result) => exports.addUrlToList(result.page.properties.url));
   });
 };
 
-queue.done((result) => {
-  result.links.forEach((link) => finishLink(result, link));
+queue.done((job) => {
+  const links = job.links
+    .map((to) => ({ from: job.url, href: to, to: buildUrl(job.url, to) }));
+
+  finishLink(job.url, links);
 });
