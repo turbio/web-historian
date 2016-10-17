@@ -3,10 +3,11 @@ const path = require('path');
 const http = require('http');
 const neo4j = require('neo4j');
 const url = require('url');
+const config = require('../config.json').neo4j;
 
 const queue = require('./queue');
 
-var db = new neo4j.GraphDatabase('http://neo4j:password@localhost:7474');
+var db = new neo4j.GraphDatabase(`http://${config.user}:${config.password}@${config.host}:${config.port}`);
 
 const buildUrl = (origin, destination) => {
   let parsedOrigin = url.parse(origin);
