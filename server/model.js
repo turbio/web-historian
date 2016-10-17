@@ -88,7 +88,7 @@ exports.addUrlToList = function(reqUrl) {
     .catch((err) => console.log(err));
 };
 
-const finishLink = (from, to) => {
+const finishLink = (from, to) => new Promise((resolve) => {
   console.log('started adding', to.length, 'urls');
 
   query(`
@@ -109,12 +109,17 @@ const finishLink = (from, to) => {
   .then((created) => {
     console.log('finished,', created.length, 'were new');
     created.map((result) => exports.addUrlToList(result.page.properties.url));
+    resolve();
   });
-};
+});
 
 queue.done((job) => {
+  if (job.links.length === 0) {
+    return;
+  }
+
   const links = job.links
     .map((to) => ({ from: job.url, href: to, to: buildUrl(job.url, to) }));
 
-  finishLink(job.url, links);
+  return finishLink(job.url, links);
 });

@@ -1,21 +1,21 @@
+const config = require('../config.json').redis;
+
 var redis = require('redis');
-var push = redis.createClient(6379, '10.6.27.196');
-var pull = redis.createClient(6379, '10.6.27.196');
+var push = redis.createClient(config.port, config.host);
+var pull = redis.createClient(config.port, config.host);
 
 let doneCallback = undefined;
 
 const onDone = (err, job) => {
-  if (doneCallback) {
-    doneCallback(JSON.parse(job[1]));
-  }
-  setTimeout(() => pull.blpop('done', 0, onDone), 10000);
+  console.log('popped job');
+  Promise.resolve()
+  .then(() => doneCallback && doneCallback(JSON.parse(job[1])))
+  .then(() => pull.blpop('done', 0, onDone));
 };
 
 module.exports.page = (id, url) => {
   const job = JSON.stringify({ url, id });
-  push.lpush('pending', job, () => {
-    console.log(`added job ${job}`);
-  });
+  push.lpush('pending', job, () => { });
 };
 
 module.exports.done = (cb) => {
