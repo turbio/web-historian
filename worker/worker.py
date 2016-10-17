@@ -13,7 +13,12 @@ class Job:
 		self.url = parsed['url']
 
 	def run(self):
-		response = requests.get(self.url)
+		try:
+			response = requests.get(self.url)
+		except error:
+			print('problem fetching url', error)
+			return
+
 		tree = html.fromstring(response.content)
 
 		self.links = tree.xpath('//a/@href')
