@@ -15,13 +15,14 @@ class Job:
 	def run(self):
 		try:
 			response = requests.get(self.url)
-		except error:
+
+		except Exception as error:
 			print('problem fetching url', error)
-			return
 
-		tree = html.fromstring(response.content)
+		else:
+			tree = html.fromstring(response.content)
 
-		self.links = tree.xpath('//a/@href')
+			self.links = tree.xpath('//a/@href')
 	
 	def serialize(self):
 		return json.dumps({
