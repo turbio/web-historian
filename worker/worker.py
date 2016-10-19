@@ -3,7 +3,6 @@ import json
 import redis
 import requests
 import signal
-import sys
 from lxml import html
 
 class Job:
@@ -18,6 +17,7 @@ class Job:
 
 		except Exception as error:
 			print('problem fetching url', error)
+			self.links = [];
 
 		else:
 			tree = html.fromstring(response.content)
@@ -41,7 +41,7 @@ class JobQueue:
 		return Job(self.redis.blpop('pending')[1])
 
 	def push(self, job):
-		self.redis.lpush('done', job.serialize())
+		self.redis.rpush('done', job.serialize())
 
 config = json.load(open('../config.json'))
 queue = JobQueue(config['redis'])
