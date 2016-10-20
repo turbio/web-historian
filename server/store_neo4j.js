@@ -45,8 +45,8 @@ module.exports.path = (from, to) =>
     MERGE (from:Page { url: {FROMURL} })
     FOREACH (tourl in {TOURLS} |
       MERGE (to:Page { url: tourl})
-      MERGE (from)-[:Link]->(to)
       ON CREATE SET to.created = true
+      MERGE (from)-[:Link]->(to)
     )
     WITH from
     MATCH (page:Page)
