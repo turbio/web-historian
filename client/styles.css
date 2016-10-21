@@ -3,8 +3,13 @@ body {
   font-family: arial, sans-serif;
 }
 
+nav {
+  position: absolute;
+  top: 0;
+}
+
 #search::-webkit-input-placeholder{
-	color: #fff;
+  color: #fff;
 }
 
 @keyframes rotate{
@@ -23,4 +28,19 @@ body {
   position: absolute;
   right: 1em;
   top: 1em;
+}
+
+.links line {
+  stroke: #999;
+  stroke-opacity: 0.6;
+}
+
+.nodes circle {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+#link-view {
+  width: 100vw;
+  height: 99vh;
 }

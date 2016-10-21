@@ -5,11 +5,11 @@ const store = require('./store_neo4j');
 
 const queue = require('./queue');
 
-exports.readListOfUrls = function() {
-  return store.getAll();
+exports.nearby = (url) => {
+  return store.searchFrom(url, 3);
 };
 
-exports.addUrlToList = function(from) {
+exports.addUrlToList = (from) => {
   Promise.resolve()
     .then(() =>
       store.addOne(from))

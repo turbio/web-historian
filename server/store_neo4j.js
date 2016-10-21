@@ -29,6 +29,34 @@ const query = function(query, params, mapper) {
 
 query('CREATE INDEX ON :Page(url)').then(() => console.log('index created'));
 
+module.exports.searchFrom = (url, depth) => new Promise((resolve) => {
+  query(`
+      MATCH path = (from:Page { url: {URL} })-[r:Link*..6]->(to:Page)
+      WITH NODES(path) as pages
+      WITH REDUCE(s=[], i IN RANGE(0, SIZE(pages)-2, 1) | s + {from:pages[i], to:pages[i+1]}) AS cpairs
+      UNWIND cpairs AS pairs
+      WITH DISTINCT pairs AS pairs
+      RETURn
+          pairs.from.url AS from,
+          pairs.to.url AS to
+      LIMIT 100`, { URL: url }).then((res) => {
+        // create all the unique nodes
+        let nodes = res.reduce((arr, pair) =>
+          arr.concat([pair.from, pair.to]), []);
+
+        nodes = [...new Set(nodes)];
+        nodes = nodes.map((url) => ({ id: url, group: 1 }));
+
+        const links = res.map((pair) => ({
+          source: pair.from,
+          target: pair.to,
+          value: 1
+        }));
+
+        resolve({ nodes, links });
+      });
+});
+
 module.exports.all = () => {
   return query(
     'MATCH (page:Page) RETURN page.url AS url, page.status AS status'
